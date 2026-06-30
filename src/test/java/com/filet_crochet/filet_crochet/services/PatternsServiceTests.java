@@ -156,7 +156,7 @@ class PatternsServiceTests {
     void testGetByIdException() {
         // Arrange
         String invalidId = "invalid-id";
-        when(mongoTemplate.findOne(any(Query.class), eq(PatternDto.class), eq(PatternsService.PATTERNS_COLLECTION)))
+        lenient().when(mongoTemplate.findOne(any(Query.class), eq(PatternDto.class), eq(PatternsService.PATTERNS_COLLECTION)))
                 .thenThrow(new RuntimeException("Invalid ObjectId"));
 
         // Act
@@ -344,7 +344,7 @@ class PatternsServiceTests {
         String invalidId = "invalid-id";
         UpdatePatternDto updateDto = new UpdatePatternDto("Updated Name", null, null, null);
 
-        when(mongoTemplate.updateFirst(any(Query.class), any(Update.class), eq(PatternDto.class)))
+        lenient().when(mongoTemplate.updateFirst(any(Query.class), any(Update.class), eq(PatternDto.class)))
                 .thenThrow(new RuntimeException("Database error"));
 
         // Act
@@ -454,7 +454,7 @@ class PatternsServiceTests {
     void testDeletePatternException() {
         // Arrange
         String invalidId = "invalid-id";
-        when(mongoTemplate.remove(any(Query.class), eq(PatternDto.class)))
+        lenient().when(mongoTemplate.remove(any(Query.class), eq(PatternDto.class)))
                 .thenThrow(new RuntimeException("Invalid ObjectId"));
 
         // Act

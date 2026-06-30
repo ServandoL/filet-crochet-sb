@@ -83,7 +83,7 @@ class ProgressServiceTests {
         // Arrange
         String invalidId = "invalid-id";
 
-        when(mongoTemplate.findById(any(), eq(ProgressDto.class), eq(ProgressService.PROGRESS_COLLECTION)))
+        lenient().when(mongoTemplate.findById(any(), eq(ProgressDto.class), eq(ProgressService.PROGRESS_COLLECTION)))
                 .thenThrow(new IllegalArgumentException("Invalid ObjectId"));
 
         // Act
@@ -99,7 +99,7 @@ class ProgressServiceTests {
         // Arrange
         String id = testObjectId.toString();
 
-        when(mongoTemplate.findById(any(ObjectId.class), eq(ProgressDto.class), eq(ProgressService.PROGRESS_COLLECTION)))
+        lenient().when(mongoTemplate.findById(any(ObjectId.class), eq(ProgressDto.class), eq(ProgressService.PROGRESS_COLLECTION)))
                 .thenThrow(new RuntimeException("Database connection error"));
 
         // Act
@@ -113,7 +113,7 @@ class ProgressServiceTests {
     @DisplayName("getById should handle null id gracefully")
     void testGetByIdNullId() {
         // Arrange
-        when(mongoTemplate.findById(any(), eq(ProgressDto.class), eq(ProgressService.PROGRESS_COLLECTION)))
+        lenient().when(mongoTemplate.findById(any(), eq(ProgressDto.class), eq(ProgressService.PROGRESS_COLLECTION)))
                 .thenThrow(new NullPointerException());
 
         // Act
@@ -203,7 +203,7 @@ class ProgressServiceTests {
         String invalidId = "invalid-id";
         UpsertProgressDto upsertDto = new UpsertProgressDto(testCells);
 
-        when(mongoTemplate.replace(any(Query.class), any(UpsertProgressDto.class), eq(ProgressService.PROGRESS_COLLECTION)))
+        lenient().when(mongoTemplate.replace(any(Query.class), any(UpsertProgressDto.class), eq(ProgressService.PROGRESS_COLLECTION)))
                 .thenThrow(new IllegalArgumentException("Invalid ObjectId"));
 
         // Act
@@ -220,7 +220,7 @@ class ProgressServiceTests {
         String id = testObjectId.toString();
         UpsertProgressDto upsertDto = new UpsertProgressDto(testCells);
 
-        when(mongoTemplate.replace(any(Query.class), any(UpsertProgressDto.class), eq(ProgressService.PROGRESS_COLLECTION)))
+        lenient().when(mongoTemplate.replace(any(Query.class), any(UpsertProgressDto.class), eq(ProgressService.PROGRESS_COLLECTION)))
                 .thenThrow(new RuntimeException("Database connection error"));
 
         // Act
@@ -236,7 +236,7 @@ class ProgressServiceTests {
         // Arrange
         UpsertProgressDto upsertDto = new UpsertProgressDto(testCells);
 
-        when(mongoTemplate.replace(any(Query.class), any(UpsertProgressDto.class), eq(ProgressService.PROGRESS_COLLECTION)))
+        lenient().when(mongoTemplate.replace(any(Query.class), any(UpsertProgressDto.class), eq(ProgressService.PROGRESS_COLLECTION)))
                 .thenThrow(new NullPointerException());
 
         // Act
@@ -293,7 +293,7 @@ class ProgressServiceTests {
         // Arrange
         String invalidId = "invalid-id";
 
-        when(mongoTemplate.remove(any(Query.class), eq(ProgressService.PROGRESS_COLLECTION)))
+        lenient().when(mongoTemplate.remove(any(Query.class), eq(ProgressService.PROGRESS_COLLECTION)))
                 .thenThrow(new IllegalArgumentException("Invalid ObjectId"));
 
         // Act & Assert - should not throw exception
@@ -306,7 +306,7 @@ class ProgressServiceTests {
         // Arrange
         String id = testObjectId.toString();
 
-        when(mongoTemplate.remove(any(Query.class), eq(ProgressService.PROGRESS_COLLECTION)))
+        lenient().when(mongoTemplate.remove(any(Query.class), eq(ProgressService.PROGRESS_COLLECTION)))
                 .thenThrow(new RuntimeException("Database connection error"));
 
         // Act & Assert - should not throw exception
@@ -317,7 +317,7 @@ class ProgressServiceTests {
     @DisplayName("deleteById should handle null id gracefully")
     void testDeleteByIdNullId() {
         // Arrange
-        when(mongoTemplate.remove(any(Query.class), eq(ProgressService.PROGRESS_COLLECTION)))
+        lenient().when(mongoTemplate.remove(any(Query.class), eq(ProgressService.PROGRESS_COLLECTION)))
                 .thenThrow(new NullPointerException());
 
         // Act & Assert - should not throw exception
