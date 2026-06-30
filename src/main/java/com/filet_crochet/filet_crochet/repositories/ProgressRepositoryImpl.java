@@ -7,7 +7,9 @@ import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.data.mongodb.core.ReplaceOptions;
 import org.springframework.data.mongodb.core.query.Criteria;
 import org.springframework.data.mongodb.core.query.Query;
+import org.springframework.stereotype.Component;
 
+@Component
 public class ProgressRepositoryImpl implements ProgressRepository {
     public static final String PROGRESS_COLLECTION = "PROGRESS";
     private final MongoTemplate mongoTemplate;
