@@ -25,6 +25,11 @@ public class PatternsController {
         this.progressService = progressService;
     }
 
+    @GetMapping
+    public ResponseEntity<List<PatternDto>> getAllPatterns() {
+        return ResponseEntity.ok(patternsService.getPatterns());
+    }
+
     @DeleteMapping("/{id}")
     public ResponseEntity<GenericMessageResponseDto> deletePattern(@PathVariable String id) {
         if (!patternsValidator.validateId(id)) {
@@ -39,11 +44,6 @@ public class PatternsController {
             return ResponseEntity.notFound().build();
         }
         return ResponseEntity.status(HttpStatus.NO_CONTENT).build();
-    }
-
-    @GetMapping
-    public ResponseEntity<List<PatternDto>> getAllPatterns() {
-        return ResponseEntity.ok(patternsService.getPatterns());
     }
 
     @PatchMapping("/{id}")

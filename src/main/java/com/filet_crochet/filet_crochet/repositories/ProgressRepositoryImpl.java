@@ -3,13 +3,14 @@ package com.filet_crochet.filet_crochet.repositories;
 import com.filet_crochet.filet_crochet.dto.ProgressDto;
 import com.filet_crochet.filet_crochet.dto.UpsertProgressDto;
 import org.bson.types.ObjectId;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.data.mongodb.core.ReplaceOptions;
 import org.springframework.data.mongodb.core.query.Criteria;
 import org.springframework.data.mongodb.core.query.Query;
-import org.springframework.stereotype.Component;
+import org.springframework.stereotype.Repository;
 
-@Component
+@Repository
 public class ProgressRepositoryImpl implements ProgressRepository {
     public static final String PROGRESS_COLLECTION = "PROGRESS";
     private final MongoTemplate mongoTemplate;

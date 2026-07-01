@@ -1,18 +1,18 @@
 package com.filet_crochet.filet_crochet.dto;
 
-import com.fasterxml.jackson.annotation.JsonFormat;
-import com.fasterxml.jackson.annotation.JsonPropertyOrder;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import org.bson.types.ObjectId;
+import org.springframework.data.annotation.Id;
+import tools.jackson.databind.annotation.JsonSerialize;
+import tools.jackson.databind.ser.std.ToStringSerializer;
 
 import java.time.LocalDateTime;
-import java.util.List;
+import java.util.ArrayList;
 
-@JsonFormat(shape = JsonFormat.Shape.ARRAY)
-@JsonPropertyOrder({"row", "col"})
 public record PatternDto(
-        @NotNull
+        @Id
+        @JsonSerialize(using = ToStringSerializer.class)
         ObjectId _id,
         @NotBlank(message = "Pattern name cannot be blank")
         String name,
@@ -21,7 +21,7 @@ public record PatternDto(
         @NotNull(message = "Pattern cols cannot be null")
         Integer cols,
         @NotNull(message = "Pattern cells cannot be null")
-        List<FilledCellDto> cells,
+        ArrayList<ArrayList<Integer>> cells,
         @NotNull(message = "Section row interval cannot be null")
         Integer sectionRowInterval,
         @NotNull(message = "Section col interval cannot be null")

@@ -1,6 +1,5 @@
 package com.filet_crochet.filet_crochet.repositories;
 
-import com.filet_crochet.filet_crochet.dto.FilledCellDto;
 import com.filet_crochet.filet_crochet.dto.PatternDto;
 import com.filet_crochet.filet_crochet.dto.UpdatePatternDto;
 import com.mongodb.client.result.DeleteResult;
@@ -12,13 +11,12 @@ import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.data.mongodb.core.query.Criteria;
 import org.springframework.data.mongodb.core.query.Query;
 import org.springframework.data.mongodb.core.query.Update;
-import org.springframework.stereotype.Component;
+import org.springframework.stereotype.Repository;
 
 import java.time.LocalDateTime;
 import java.util.List;
-import java.util.stream.Collectors;
 
-@Component
+@Repository
 public class PatternsRepositoryImpl implements PatternsRepository {
     public static final String PATTERNS_COLLECTION = "PATTERNS";
     private static final Logger log = LoggerFactory.getLogger(PatternsRepositoryImpl.class);
@@ -67,10 +65,7 @@ public class PatternsRepositoryImpl implements PatternsRepository {
         }
 
         if (pattern.cells() != null) {
-            List<FilledCellDto> cells = pattern.cells().stream()
-                    .map((FilledCellDto c) -> new FilledCellDto(c.row(), c.col()))
-                    .collect(Collectors.toList());
-            update.set("cells", cells);
+            update.set("cells", pattern.cells());
         }
 
         if (pattern.sectionRowInterval() != null) {

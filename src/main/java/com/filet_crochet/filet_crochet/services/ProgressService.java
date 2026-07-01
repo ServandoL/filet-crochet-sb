@@ -6,6 +6,7 @@ import com.filet_crochet.filet_crochet.repositories.ProgressRepositoryImpl;
 import org.bson.types.ObjectId;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.Optional;
@@ -13,6 +14,7 @@ import java.util.Optional;
 @Service
 public class ProgressService {
     private static final Logger log = LoggerFactory.getLogger(ProgressService.class);
+    @Autowired
     private final ProgressRepositoryImpl progressRepository;
 
     public ProgressService(ProgressRepositoryImpl progressRepository) {
