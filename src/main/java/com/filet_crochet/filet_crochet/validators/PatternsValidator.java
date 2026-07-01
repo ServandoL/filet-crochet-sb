@@ -11,10 +11,10 @@ public class PatternsValidator {
 
     public boolean validateId(String id) {
         try {
-            return ObjectId.isValid(id);
+            return !ObjectId.isValid(id);
         } catch (IllegalArgumentException e) {
             log.warn("Invalid ObjectId: {}", id, e);
-            return false;
+            return true;
         }
     }
 }
