@@ -1,4 +1,4 @@
-FROM openjdk:17-jdk-slim
+FROM eclipse-temurin:25-jdk-ubi10-minimal
 LABEL authors="servandoluviano"
 
 # Allow specifying which built jar to copy in at build time. By default we use the
