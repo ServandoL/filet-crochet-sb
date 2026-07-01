@@ -55,7 +55,7 @@ public class PatternsRepositoryImpl implements PatternsRepository {
 
     @Override
     public PatternDto updatePattern(ObjectId id, UpdatePatternDto pattern) {
-        Query query = new Query(Criteria.where("_id").is(id));
+        Query query = new Query().addCriteria(Criteria.where("_id").is(id));
 
         Update update = new Update();
         update.set("updatedAt", LocalDateTime.now());
@@ -76,9 +76,9 @@ public class PatternsRepositoryImpl implements PatternsRepository {
             update.set("sectionColInterval", pattern.sectionColInterval());
         }
 
-        UpdateResult updateResult = mongoTemplate.updateFirst(query, update, PatternDto.class);
+        UpdateResult updateResult = mongoTemplate.updateFirst(query, update, PatternDto.class, PATTERNS_COLLECTION);
         if (updateResult.wasAcknowledged() && updateResult.getModifiedCount() > 0) {
-            return mongoTemplate.findOne(query, PatternDto.class, PATTERNS_COLLECTION);
+            return mongoTemplate.findById(id, PatternDto.class, PATTERNS_COLLECTION);
         }
         return null;
     }

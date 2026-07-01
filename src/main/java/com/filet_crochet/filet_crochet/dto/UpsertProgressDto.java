@@ -8,6 +8,5 @@ import java.util.ArrayList;
 public record UpsertProgressDto(
         @NotNull(message = "Highlighted cells cannot be null")
         ArrayList<ArrayList<Integer>> highlightedCells,
-        @NotNull(message = "UpdatedAt cannot be null")
         LocalDateTime updatedAt) {
 }
