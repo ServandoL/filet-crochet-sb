@@ -3,10 +3,11 @@ package com.filet_crochet.filet_crochet.api;
 import com.filet_crochet.filet_crochet.dto.*;
 import com.filet_crochet.filet_crochet.services.PatternsService;
 import com.filet_crochet.filet_crochet.services.ProgressService;
-import com.filet_crochet.filet_crochet.validators.PatternsValidator;
+import com.filet_crochet.filet_crochet.validators.ValidObjectId;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
@@ -14,13 +15,12 @@ import java.util.List;
 
 @RestController
 @RequestMapping("/api/patterns")
+@Validated
 public class PatternsController {
-    private final PatternsValidator patternsValidator;
     private final PatternsService patternsService;
     private final ProgressService progressService;
 
-    public PatternsController(PatternsValidator patternsValidator, PatternsService patternsService, ProgressService progressService) {
-        this.patternsValidator = patternsValidator;
+    public PatternsController(PatternsService patternsService, ProgressService progressService) {
         this.patternsService = patternsService;
         this.progressService = progressService;
     }
@@ -31,10 +31,7 @@ public class PatternsController {
     }
 
     @DeleteMapping("/{id}")
-    public ResponseEntity<GenericMessageResponseDto> deletePattern(@PathVariable String id) {
-        if (patternsValidator.validateId(id)) {
-            return ResponseEntity.badRequest().body(new GenericMessageResponseDto("Invalid pattern ID"));
-        }
+    public ResponseEntity<GenericMessageResponseDto> deletePattern(@PathVariable @ValidObjectId String id) {
         // Logic to delete the pattern goes here
         var deleteResult = patternsService.deletePattern(id);
         if (deleteResult == null) {
@@ -47,10 +44,7 @@ public class PatternsController {
     }
 
     @PatchMapping("/{id}")
-    public ResponseEntity<PatternDto> updatePattern(@PathVariable String id, @Valid @RequestBody UpdatePatternDto patternDto) {
-        if (patternsValidator.validateId(id)) {
-            return ResponseEntity.badRequest().build();
-        }
+    public ResponseEntity<PatternDto> updatePattern(@PathVariable @ValidObjectId String id, @Valid @RequestBody UpdatePatternDto patternDto) {
         return patternsService.patchPattern(id, patternDto)
                 .map(ResponseEntity::ok)
                 .orElse(ResponseEntity.notFound().build());
@@ -58,10 +52,7 @@ public class PatternsController {
 
     @GetMapping("/{id}")
     public ResponseEntity<PatternDto> getPatternById(
-            @PathVariable() String id) {
-        if (patternsValidator.validateId(id)) {
-            return ResponseEntity.badRequest().build();
-        }
+            @PathVariable @ValidObjectId String id) {
         return patternsService.getById(id).map(ResponseEntity::ok).orElse(ResponseEntity.notFound().build());
     }
 
@@ -73,30 +64,21 @@ public class PatternsController {
     }
 
     @GetMapping("/{id}/progress")
-    public ResponseEntity<ProgressDto> getProgressByPatternId(@PathVariable() String id) {
-        if (patternsValidator.validateId(id)) {
-            return ResponseEntity.badRequest().build();
-        }
+    public ResponseEntity<ProgressDto> getProgressByPatternId(@PathVariable @ValidObjectId String id) {
         return progressService.getById(id)
                 .map(ResponseEntity::ok)
                 .orElse(ResponseEntity.notFound().build());
     }
 
     @PutMapping("/{id}/progress")
-    public ResponseEntity<ProgressDto> updateProgressByPatternId(@PathVariable() String id, @Valid @RequestBody UpsertProgressDto progressDto) {
-        if (patternsValidator.validateId(id)) {
-            return ResponseEntity.badRequest().build();
-        }
+    public ResponseEntity<ProgressDto> updateProgressByPatternId(@PathVariable @ValidObjectId String id, @Valid @RequestBody UpsertProgressDto progressDto) {
         return progressService.upsertById(id, progressDto)
                 .map(ResponseEntity::ok)
                 .orElse(ResponseEntity.notFound().build());
     }
 
     @DeleteMapping("/{id}/progress")
-    public ResponseEntity<GenericMessageResponseDto> deleteProgressByPatternId(@PathVariable() String id) {
-        if (patternsValidator.validateId(id)) {
-            return ResponseEntity.badRequest().body(new GenericMessageResponseDto("Invalid pattern ID"));
-        }
+    public ResponseEntity<GenericMessageResponseDto> deleteProgressByPatternId(@PathVariable @ValidObjectId String id) {
         progressService.deleteById(id);
         return ResponseEntity.status(HttpStatus.NO_CONTENT).build();
     }
