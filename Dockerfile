@@ -12,13 +12,13 @@ COPY ${JAR_FILE} ./app.jar
 # Provide sane defaults that mirror src/main/resources/application.properties so
 # the container can run without extra env vars. These can be overridden at runtime
 # with `docker run -e MONGO_URI=...` etc.
-ENV MONGO_URI="mongodb://localhost:27017/test" \
-	MONGO_DB="test" \
+ENV MONGO_APP_URL="mongodb://localhost:27017/test" \
+	MONGO_DATABASE="test" \
 	CORS_ORIGINS="http://localhost:4200,http://localhost:5173" \
-	SERVER_PORT=9010 \
+	SERVER_PORT=9002 \
 	JAVA_OPTS=""
 
-EXPOSE 9010
+EXPOSE 9002
 
 # Start the Spring Boot application. Users can pass additional JVM flags via
 # the JAVA_OPTS env var and override env-specific values with -e when running.
