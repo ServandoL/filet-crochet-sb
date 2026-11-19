@@ -15,7 +15,7 @@ COPY ${JAR_FILE} ./app.jar
 ENV MONGO_APP_URL="mongodb://localhost:27017/test" \
 	MONGO_DATABASE="test" \
 	CORS_ORIGINS="http://localhost:4200,http://localhost:5173" \
-	SERVER_PORT=9002 \
+	SERVER_PORT="9002" \
 	JAVA_OPTS=""
 
 EXPOSE 9002
