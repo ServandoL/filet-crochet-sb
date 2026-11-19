@@ -1,4 +1,5 @@
-FROM eclipse-temurin:25-jdk-ubi10-minimal
+# The JRE image has no compiler or JDK tools for an attacker to use.
+FROM eclipse-temurin:25-jre-ubi10-minimal
 LABEL authors="servandoluviano"
 
 # Allow specifying which built jar to copy in at build time. By default we use the
@@ -19,6 +20,10 @@ ENV MONGO_APP_URL="mongodb://localhost:27017/test" \
 	JAVA_OPTS=""
 
 EXPOSE 9002
+
+# Run as an unprivileged user. The jar is world-readable and the app writes only
+# to /tmp, so it needs no user account or owned files.
+USER 10001:10001
 
 # Start the Spring Boot application. Users can pass additional JVM flags via
 # the JAVA_OPTS env var and override env-specific values with -e when running.
