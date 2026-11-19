@@ -155,6 +155,20 @@ class AccessJwtTests {
         }))));
     }
 
+    // nginx reaches the API over plain HTTP, but the browser's Origin is https. Unless the API
+    // reads the forwarded headers, it takes a same-origin save for a CORS request and rejects it.
+    @Test
+    void sameOriginWriteThroughTheProxyIsAllowed() throws Exception {
+        expectAllowed(mvc.perform(write().header(HEADER, token(KEY, claims -> {
+                }))
+                .header("Sec-Fetch-Site", "same-origin")
+                .header("Origin", "https://home.ksl-apps.dev")
+                .header("Host", "home.ksl-apps.dev")
+                .header("X-Forwarded-Proto", "https")
+                .header("X-Forwarded-Host", "home.ksl-apps.dev")
+                .header("X-Forwarded-Port", "443")));
+    }
+
     @Test
     void crossSiteWriteIsForbidden() throws Exception {
         mvc.perform(write().header(HEADER, token(KEY, claims -> {
