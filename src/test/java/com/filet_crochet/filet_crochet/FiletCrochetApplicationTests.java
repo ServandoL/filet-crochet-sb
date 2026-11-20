@@ -13,7 +13,8 @@ import org.springframework.data.mongodb.core.MongoTemplate;
 import static org.junit.jupiter.api.Assertions.*;
 
 // The Access check refuses to start without these; nothing here sends a token.
-@SpringBootTest(properties = {"access.team-domain=https://test.cloudflareaccess.com", "access.aud=test-aud"})
+@SpringBootTest(properties = {"access.team-domain=https://test.cloudflareaccess.com", "access.aud=test-aud",
+		"app.mongo.create-indexes=false"})
 @DisplayName("Filet Crochet Application Integration Tests")
 class FiletCrochetApplicationTests {
 

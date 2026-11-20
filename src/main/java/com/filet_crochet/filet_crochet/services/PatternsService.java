@@ -26,22 +26,22 @@ public class PatternsService {
         this.patternRepository = patternRepository;
     }
 
-    public DeleteResult deletePattern(String id) {
+    public DeleteResult deletePattern(String householdId, String id) {
         try {
-            return patternRepository.deleteById(new ObjectId(id));
+            return patternRepository.deleteById(householdId, new ObjectId(id));
         } catch (Exception error) {
             log.warn("Error deleting pattern: {}", id, error);
             return null;
         }
     }
 
-    public List<PatternDto> getPatterns() {
-        return patternRepository.findAll();
+    public List<PatternDto> getPatterns(String householdId) {
+        return patternRepository.findAll(householdId);
     }
 
-    public Optional<PatternDto> patchPattern(String id, UpdatePatternDto pattern) {
+    public Optional<PatternDto> patchPattern(String householdId, String id, UpdatePatternDto pattern) {
         try {
-            var result = patternRepository.updatePattern(new ObjectId(id), pattern);
+            var result = patternRepository.updatePattern(householdId, new ObjectId(id), pattern);
             return Optional.ofNullable(result);
         } catch (Exception error) {
             log.warn("Error patching pattern: {}", id, error);
@@ -49,16 +49,16 @@ public class PatternsService {
         }
     }
 
-    public Optional<PatternDto> getById(String id) {
+    public Optional<PatternDto> getById(String householdId, String id) {
         try {
-            return Optional.ofNullable(patternRepository.findById(new ObjectId(id)));
+            return Optional.ofNullable(patternRepository.findById(householdId, new ObjectId(id)));
         } catch (Exception error) {
             log.warn("Error getting pattern: {}", id, error);
             return Optional.empty();
         }
     }
 
-    public PatternDto createPattern(@NonNull CreatePatternDto pattern) {
+    public PatternDto createPattern(String householdId, @NonNull CreatePatternDto pattern) {
         var now = LocalDateTime.now();
         var toInsert = new PatternDto(
                 new ObjectId(),
@@ -69,7 +69,8 @@ public class PatternsService {
                 null,
                 null,
                 now,
-                now
+                now,
+                householdId
         );
         return patternRepository.createPattern(toInsert);
     }

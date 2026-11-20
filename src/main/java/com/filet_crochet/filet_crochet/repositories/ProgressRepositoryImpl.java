@@ -11,6 +11,7 @@ import org.springframework.data.mongodb.core.query.Query;
 import org.springframework.stereotype.Repository;
 
 import java.time.LocalDateTime;
+import java.util.List;
 
 @Repository
 public class ProgressRepositoryImpl implements ProgressRepository {
@@ -31,7 +32,8 @@ public class ProgressRepositoryImpl implements ProgressRepository {
     public ProgressDto upsertById(ObjectId id, UpsertProgressDto progressDto) {
         var query = new Query().addCriteria(Criteria.where("_id").is(id));
         var result = mongoTemplate.replace(query, new ProgressDto(LocalDateTime.now(), progressDto.highlightedCells()), ReplaceOptions.replaceOptions().upsert(), PROGRESS_COLLECTION);
-        if (result.wasAcknowledged() && result.getModifiedCount() > 0) {
+        // The first save for a pattern inserts, so nothing is "modified"; count that as saved too.
+        if (result.wasAcknowledged() && (result.getMatchedCount() > 0 || result.getUpsertedId() != null)) {
             return mongoTemplate.findById(id, ProgressDto.class, PROGRESS_COLLECTION);
         }
         return null;
@@ -41,6 +43,11 @@ public class ProgressRepositoryImpl implements ProgressRepository {
     public void deleteById(ObjectId id) {
         var query = new Query().addCriteria(Criteria.where("_id").is(id));
         mongoTemplate.remove(query, PROGRESS_COLLECTION);
+    }
+
+    @Override
+    public long deleteAll(List<ObjectId> patternIds) {
+        return mongoTemplate.remove(new Query(Criteria.where("_id").in(patternIds)), PROGRESS_COLLECTION).getDeletedCount();
     }
 
 }

@@ -6,6 +6,7 @@ import java.nio.charset.StandardCharsets;
 import java.time.Instant;
 import java.util.Date;
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 import java.util.function.Consumer;
 
@@ -20,6 +21,7 @@ import com.nimbusds.jwt.JWTClaimsSet;
 import com.nimbusds.jwt.SignedJWT;
 import com.sun.net.httpserver.HttpServer;
 import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -32,9 +34,14 @@ import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.ResultActions;
 import org.springframework.test.web.servlet.request.AbstractMockHttpServletRequestBuilder;
 import com.filet_crochet.filet_crochet.services.PatternsService;
+import com.home.household.CurrentMember;
+import com.home.household.HouseholdFilter;
+import com.home.household.HouseholdMemberships;
 import com.filet_crochet.filet_crochet.services.ProgressService;
 
 import static org.junit.jupiter.api.Assertions.assertNotEquals;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -43,7 +50,8 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
  * Real token verification, against a local JWKS endpoint standing in for Cloudflare Access. The
  * services are mocked, so no database is needed.
  */
-@SpringBootTest(properties = {"MONGO_APP_URL=mongodb://localhost:1/test", "MONGO_DATABASE=test", "SERVER_PORT=0"})
+@SpringBootTest(properties = {"MONGO_APP_URL=mongodb://localhost:1/test", "MONGO_DATABASE=test", "SERVER_PORT=0",
+        "app.mongo.create-indexes=false"})
 @AutoConfigureMockMvc
 class AccessJwtTests {
 
@@ -52,6 +60,7 @@ class AccessJwtTests {
     private static final String AUDIENCE = "test-aud-tag";
 
     private static final String READ = "/api/patterns";
+    private static final String HOUSEHOLD = "6afe67e6c0a8bf150c541825";
 
     private static final RSAKey KEY = generateKey();
 
@@ -68,6 +77,20 @@ class AccessJwtTests {
     @MockitoBean
     private ProgressService progressService;
 
+    /** Every signed-in email belongs to the household, so only the security checks decide. */
+    @MockitoBean
+    private HouseholdMemberships memberships;
+
+    @BeforeEach
+    void everyoneIsAMember() {
+        when(memberships.find(anyString(), anyString())).thenAnswer(
+                call -> Optional.of(new CurrentMember(call.getArgument(0), call.getArgument(1), CurrentMember.Role.MEMBER)));
+    }
+
+    private static AbstractMockHttpServletRequestBuilder<?> read() {
+        return get(READ).header(HouseholdFilter.HEADER, HOUSEHOLD);
+    }
+
     @DynamicPropertySource
     static void accessProperties(DynamicPropertyRegistry registry) {
         registry.add("access.team-domain", () -> ISSUER);
@@ -81,29 +104,29 @@ class AccessJwtTests {
 
     /** A write the API would accept, so only the security checks decide the outcome. */
     private static AbstractMockHttpServletRequestBuilder<?> write() {
-        return delete("/api/patterns/507f1f77bcf86cd799439011/progress");
+        return delete("/api/patterns/507f1f77bcf86cd799439011/progress").header(HouseholdFilter.HEADER, HOUSEHOLD);
     }
 
     @Test
     void signedTokenIsAccepted() throws Exception {
-        mvc.perform(get(READ).header(HEADER, token(KEY, claims -> {
+        mvc.perform(read().header(HEADER, token(KEY, claims -> {
         }))).andExpect(status().isOk());
     }
 
     @Test
     void audienceListThatIncludesOursIsAccepted() throws Exception {
-        mvc.perform(get(READ).header(HEADER, token(KEY, claims -> claims.audience(List.of("another-app", AUDIENCE)))))
+        mvc.perform(read().header(HEADER, token(KEY, claims -> claims.audience(List.of("another-app", AUDIENCE)))))
                 .andExpect(status().isOk());
     }
 
     @Test
     void missingHeaderIsRejected() throws Exception {
-        mvc.perform(get(READ)).andExpect(status().isUnauthorized());
+        mvc.perform(read()).andExpect(status().isUnauthorized());
     }
 
     @Test
     void authorizationHeaderIsNotRead() throws Exception {
-        mvc.perform(get(READ).header(HttpHeaders.AUTHORIZATION, "Bearer " + token(KEY, claims -> {
+        mvc.perform(read().header(HttpHeaders.AUTHORIZATION, "Bearer " + token(KEY, claims -> {
         }))).andExpect(status().isUnauthorized());
     }
 
@@ -188,7 +211,7 @@ class AccessJwtTests {
     }
 
     private void expectRejected(String token) throws Exception {
-        mvc.perform(get(READ).header(HEADER, token)).andExpect(status().isUnauthorized());
+        mvc.perform(read().header(HEADER, token)).andExpect(status().isUnauthorized());
     }
 
     private static void expectAllowed(ResultActions result) {

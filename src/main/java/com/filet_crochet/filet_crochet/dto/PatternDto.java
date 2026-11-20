@@ -1,9 +1,12 @@
 package com.filet_crochet.filet_crochet.dto;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import org.bson.types.ObjectId;
 import org.springframework.data.annotation.Id;
+import org.springframework.data.mongodb.core.mapping.Field;
+import org.springframework.data.mongodb.core.mapping.FieldType;
 import tools.jackson.databind.annotation.JsonSerialize;
 import tools.jackson.databind.ser.std.ToStringSerializer;
 
@@ -27,6 +30,10 @@ public record PatternDto(
         @NotNull(message = "Section col interval cannot be null")
         Integer sectionColInterval,
         LocalDateTime updatedAt,
-        LocalDateTime createdAt
+        LocalDateTime createdAt,
+        // The household that owns the pattern, stored as an ObjectId and never sent to the browser.
+        @JsonIgnore
+        @Field(targetType = FieldType.OBJECT_ID)
+        String householdId
 ) {
 }

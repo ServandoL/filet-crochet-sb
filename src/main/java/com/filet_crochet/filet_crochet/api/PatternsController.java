@@ -1,5 +1,6 @@
 package com.filet_crochet.filet_crochet.api;
 
+import com.home.household.CurrentMember;
 import com.filet_crochet.filet_crochet.dto.*;
 import com.filet_crochet.filet_crochet.services.PatternsService;
 import com.filet_crochet.filet_crochet.services.ProgressService;
@@ -26,14 +27,14 @@ public class PatternsController {
     }
 
     @GetMapping
-    public ResponseEntity<List<PatternDto>> getAllPatterns() {
-        return ResponseEntity.ok(patternsService.getPatterns());
+    public ResponseEntity<List<PatternDto>> getAllPatterns(CurrentMember member) {
+        return ResponseEntity.ok(patternsService.getPatterns(member.householdId()));
     }
 
     @DeleteMapping("/{id}")
-    public ResponseEntity<GenericMessageResponseDto> deletePattern(@PathVariable @ValidObjectId String id) {
+    public ResponseEntity<GenericMessageResponseDto> deletePattern(CurrentMember member, @PathVariable @ValidObjectId String id) {
         // Logic to delete the pattern goes here
-        var deleteResult = patternsService.deletePattern(id);
+        var deleteResult = patternsService.deletePattern(member.householdId(), id);
         if (deleteResult == null) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(new GenericMessageResponseDto("Error deleting pattern"));
         }
@@ -44,42 +45,42 @@ public class PatternsController {
     }
 
     @PatchMapping("/{id}")
-    public ResponseEntity<PatternDto> updatePattern(@PathVariable @ValidObjectId String id, @Valid @RequestBody UpdatePatternDto patternDto) {
-        return patternsService.patchPattern(id, patternDto)
+    public ResponseEntity<PatternDto> updatePattern(CurrentMember member, @PathVariable @ValidObjectId String id, @Valid @RequestBody UpdatePatternDto patternDto) {
+        return patternsService.patchPattern(member.householdId(), id, patternDto)
                 .map(ResponseEntity::ok)
                 .orElse(ResponseEntity.notFound().build());
     }
 
     @GetMapping("/{id}")
     public ResponseEntity<PatternDto> getPatternById(
-            @PathVariable @ValidObjectId String id) {
-        return patternsService.getById(id).map(ResponseEntity::ok).orElse(ResponseEntity.notFound().build());
+            CurrentMember member, @PathVariable @ValidObjectId String id) {
+        return patternsService.getById(member.householdId(), id).map(ResponseEntity::ok).orElse(ResponseEntity.notFound().build());
     }
 
     @PostMapping
-    public ResponseEntity<PatternDto> createPattern(@Valid @RequestBody CreatePatternDto patternDto) {
-        var result = patternsService.createPattern(patternDto);
+    public ResponseEntity<PatternDto> createPattern(CurrentMember member, @Valid @RequestBody CreatePatternDto patternDto) {
+        var result = patternsService.createPattern(member.householdId(), patternDto);
         var location = ServletUriComponentsBuilder.fromCurrentRequest().path("/{id}").buildAndExpand(result._id()).toUri();
         return ResponseEntity.created(location).body(result);
     }
 
     @GetMapping("/{id}/progress")
-    public ResponseEntity<ProgressDto> getProgressByPatternId(@PathVariable @ValidObjectId String id) {
-        return progressService.getById(id)
+    public ResponseEntity<ProgressDto> getProgressByPatternId(CurrentMember member, @PathVariable @ValidObjectId String id) {
+        return progressService.getById(member.householdId(), id)
                 .map(ResponseEntity::ok)
                 .orElse(ResponseEntity.notFound().build());
     }
 
     @PutMapping("/{id}/progress")
-    public ResponseEntity<ProgressDto> updateProgressByPatternId(@PathVariable @ValidObjectId String id, @Valid @RequestBody UpsertProgressDto progressDto) {
-        return progressService.upsertById(id, progressDto)
+    public ResponseEntity<ProgressDto> updateProgressByPatternId(CurrentMember member, @PathVariable @ValidObjectId String id, @Valid @RequestBody UpsertProgressDto progressDto) {
+        return progressService.upsertById(member.householdId(), id, progressDto)
                 .map(ResponseEntity::ok)
                 .orElse(ResponseEntity.notFound().build());
     }
 
     @DeleteMapping("/{id}/progress")
-    public ResponseEntity<GenericMessageResponseDto> deleteProgressByPatternId(@PathVariable @ValidObjectId String id) {
-        progressService.deleteById(id);
+    public ResponseEntity<GenericMessageResponseDto> deleteProgressByPatternId(CurrentMember member, @PathVariable @ValidObjectId String id) {
+        progressService.deleteById(member.householdId(), id);
         return ResponseEntity.status(HttpStatus.NO_CONTENT).build();
     }
 }
