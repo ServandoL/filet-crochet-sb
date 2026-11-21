@@ -1,6 +1,8 @@
 package com.filet_crochet.filet_crochet.api;
 
 import com.home.household.CurrentMember;
+import com.home.household.HouseholdEvent.Action;
+import com.home.household.HouseholdEvents;
 import com.filet_crochet.filet_crochet.dto.*;
 import com.filet_crochet.filet_crochet.services.PatternsService;
 import com.filet_crochet.filet_crochet.services.ProgressService;
@@ -21,9 +23,12 @@ public class PatternsController {
     private final PatternsService patternsService;
     private final ProgressService progressService;
 
-    public PatternsController(PatternsService patternsService, ProgressService progressService) {
+    private final HouseholdEvents events;
+
+    public PatternsController(PatternsService patternsService, ProgressService progressService, HouseholdEvents events) {
         this.patternsService = patternsService;
         this.progressService = progressService;
+        this.events = events;
     }
 
     @GetMapping
@@ -41,13 +46,17 @@ public class PatternsController {
         if (deleteResult.getDeletedCount() == 0) {
             return ResponseEntity.notFound().build();
         }
+        events.publish(member, "patterns", Action.DELETED, id);
         return ResponseEntity.status(HttpStatus.NO_CONTENT).build();
     }
 
     @PatchMapping("/{id}")
     public ResponseEntity<PatternDto> updatePattern(CurrentMember member, @PathVariable @ValidObjectId String id, @Valid @RequestBody UpdatePatternDto patternDto) {
         return patternsService.patchPattern(member.householdId(), id, patternDto)
-                .map(ResponseEntity::ok)
+                .map((pattern) -> {
+                    events.publish(member, "patterns", Action.UPDATED, id);
+                    return ResponseEntity.ok(pattern);
+                })
                 .orElse(ResponseEntity.notFound().build());
     }
 
@@ -60,6 +69,7 @@ public class PatternsController {
     @PostMapping
     public ResponseEntity<PatternDto> createPattern(CurrentMember member, @Valid @RequestBody CreatePatternDto patternDto) {
         var result = patternsService.createPattern(member.householdId(), patternDto);
+        events.publish(member, "patterns", Action.CREATED, result._id().toHexString());
         var location = ServletUriComponentsBuilder.fromCurrentRequest().path("/{id}").buildAndExpand(result._id()).toUri();
         return ResponseEntity.created(location).body(result);
     }
@@ -73,14 +83,19 @@ public class PatternsController {
 
     @PutMapping("/{id}/progress")
     public ResponseEntity<ProgressDto> updateProgressByPatternId(CurrentMember member, @PathVariable @ValidObjectId String id, @Valid @RequestBody UpsertProgressDto progressDto) {
+        // A pattern has one progress document, so the event names the pattern.
         return progressService.upsertById(member.householdId(), id, progressDto)
-                .map(ResponseEntity::ok)
+                .map((progress) -> {
+                    events.publish(member, "progress", Action.UPDATED, id);
+                    return ResponseEntity.ok(progress);
+                })
                 .orElse(ResponseEntity.notFound().build());
     }
 
     @DeleteMapping("/{id}/progress")
     public ResponseEntity<GenericMessageResponseDto> deleteProgressByPatternId(CurrentMember member, @PathVariable @ValidObjectId String id) {
         progressService.deleteById(member.householdId(), id);
+        events.publish(member, "progress", Action.DELETED, id);
         return ResponseEntity.status(HttpStatus.NO_CONTENT).build();
     }
 }

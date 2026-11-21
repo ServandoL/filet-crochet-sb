@@ -17,6 +17,7 @@ import org.springframework.http.MediaType;
 import org.springframework.test.context.DynamicPropertyRegistry;
 import org.springframework.test.context.DynamicPropertySource;
 import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.test.web.servlet.MvcResult;
 import org.springframework.test.web.servlet.ResultActions;
 import org.springframework.test.web.servlet.request.MockHttpServletRequestBuilder;
 import org.springframework.test.web.servlet.request.RequestPostProcessor;
@@ -36,6 +37,7 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.request;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 /**
@@ -156,6 +158,30 @@ class HouseholdScopingTests {
         patterns(KIM, kimHome).andExpect(jsonPath("$[*].name", contains("Tulip")));
         assertThat(mongo.getCollection("PROGRESS").countDocuments()).isEqualTo(1);
         assertThat(mongo.getCollection("PATTERNS_BCK").countDocuments()).isEqualTo(1);
+    }
+
+    @Test
+    void everyWriteTellsTheHouseholdsOtherDevices() throws Exception {
+        MvcResult samsStream = mvc.perform(get("/api/v1/events").with(as(SAM, samHome)))
+                .andExpect(request().asyncStarted()).andReturn();
+        MvcResult kimsStream = mvc.perform(get("/api/v1/events").with(as(KIM, kimHome)))
+                .andExpect(request().asyncStarted()).andReturn();
+
+        String rose = id(createPattern(SAM, samHome, "Rose"));
+        mvc.perform(json(patch("/api/patterns/" + rose), "{\"name\":\"Roses\"}").with(as(SAM, samHome)))
+                .andExpect(status().isOk());
+        saveProgress(SAM, samHome, rose).andExpect(status().isOk());
+        mvc.perform(delete("/api/patterns/" + rose + "/progress").with(as(SAM, samHome)))
+                .andExpect(status().isNoContent());
+        mvc.perform(delete("/api/patterns/" + rose).with(as(SAM, samHome))).andExpect(status().isNoContent());
+
+        assertThat(samsStream.getResponse().getContentAsString())
+                .contains("data:{\"resource\":\"patterns\",\"action\":\"created\",\"id\":\"" + rose + "\"}")
+                .contains("data:{\"resource\":\"patterns\",\"action\":\"updated\",\"id\":\"" + rose + "\"}")
+                .contains("data:{\"resource\":\"progress\",\"action\":\"updated\",\"id\":\"" + rose + "\"}")
+                .contains("data:{\"resource\":\"progress\",\"action\":\"deleted\",\"id\":\"" + rose + "\"}")
+                .contains("data:{\"resource\":\"patterns\",\"action\":\"deleted\",\"id\":\"" + rose + "\"}");
+        assertThat(kimsStream.getResponse().getContentAsString()).doesNotContain("event:change");
     }
 
     private ResultActions createPattern(String email, String household, String name) throws Exception {
