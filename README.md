@@ -37,7 +37,7 @@ The `local` profile signs every request in as `LOCAL_MEMBER_EMAIL`, who needs a 
 household-api (port 9020) like anyone else.
 
 ## Quick start
-Prerequisites: Java 17+ (project toolchain is Java 25) — the Gradle wrapper is
+Prerequisites: Java 25 (the Gradle toolchain) — the Gradle wrapper is
 included, no local Gradle install needed.
 
 ```bash
@@ -46,7 +46,7 @@ included, no local Gradle install needed.
 ```
 
 ## Configuration
-The app reads the MongoDB connection URI from the `MONGO_URI` property;
-`src/main/resources/application.properties` provides a local fallback default.
-In Docker, `MONGO_URI`, `MONGO_DATABASE`, `CORS_ORIGINS`, and `SERVER_PORT`
-(default 9002) are supplied as environment variables.
+Environment variables, with local fallbacks in
+`src/main/resources/application.properties`: `MONGO_APP_URL`, `MONGO_DATABASE`, `CORS_ORIGINS`,
+`SERVER_PORT` (9010 locally, 9002 in the Dockerfile), `HOUSEHOLD_DATABASE` (default `HOUSEHOLD`),
+and `ACCESS_TEAM_DOMAIN` / `ACCESS_AUD` for Cloudflare Access (not needed with the `local` profile).
